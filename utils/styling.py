@@ -442,7 +442,57 @@ def inject_cursor_bubble():
             filter: blur(45px);
             z-index: 0;
             pointer-events: none;
-            animation: floatOrb4 26s ease-in-out infinite;
+        /* Custom Top-Right Fork & GitHub Badge */
+        .custom-github-badge-container {
+            position: fixed;
+            top: 14px;
+            right: 20px;
+            z-index: 999999;
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        .github-badge-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            line-height: 1.2;
+            color: #ffffff !important;
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 20px;
+            text-decoration: none !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+        }
+
+        .github-badge-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            border-color: #00F2FE !important;
+            box-shadow: 0 0 18px rgba(0, 242, 254, 0.5), 0 4px 20px rgba(255, 0, 127, 0.3);
+            color: #00F2FE !important;
+        }
+
+        .fork-btn:hover {
+            border-color: #FF007F !important;
+            box-shadow: 0 0 18px rgba(255, 0, 127, 0.5), 0 4px 20px rgba(0, 242, 254, 0.3);
+            color: #FF007F !important;
+        }
+
+        @media (max-width: 768px) {
+            .custom-github-badge-container {
+                position: static;
+                margin-bottom: 15px;
+                justify-content: flex-end;
+            }
         }
     </style>
     <div class="ambient-orb-3"></div>
@@ -520,10 +570,33 @@ def inject_cursor_bubble():
     """
     components.html(js_code, height=0, width=0)
 
+def render_custom_github_badge():
+    """
+    Renders a custom floating Fork & GitHub repository badge in the top right corner.
+    """
+    badge_html = """
+    <div class="custom-github-badge-container">
+        <a href="https://github.com/Sahil-476/Learner-Demographics-Analysis/fork" target="_blank" class="github-badge-btn fork-btn" title="Fork repository on GitHub">
+            <svg aria-hidden="true" height="15" viewBox="0 0 16 16" width="15" fill="currentColor" style="vertical-align: middle;">
+                <path d="M5 5.372v.878c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-.878a2.25 2.25 0 1 1 1.5 0v.878a2.25 2.25 0 0 1-2.25 2.25h-1.5v2.128a2.251 2.251 0 1 1-1.5 0V8.5h-1.5A2.25 2.25 0 0 1 3.5 6.25v-.878a2.25 2.25 0 1 1 1.5 0ZM5 3.25a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Zm6.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm-3 8.75a.75.75 0 1 0-1.5 0 .75.75 0 0 0 1.5 0Z"></path>
+            </svg>
+            <span>Fork</span>
+        </a>
+        <a href="https://github.com/Sahil-476/Learner-Demographics-Analysis" target="_blank" class="github-badge-btn repo-btn" title="View repository on GitHub">
+            <svg aria-hidden="true" height="15" viewBox="0 0 16 16" width="15" fill="currentColor" style="vertical-align: middle;">
+                <path d="M8 0c4.42 0 8 3.58 8 8 0 3.54-2.29 6.53-5.47 7.59-.4.07-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path>
+            </svg>
+            <span>GitHub</span>
+        </a>
+    </div>
+    """
+    st.markdown(badge_html, unsafe_allow_html=True)
+
 def render_header(title, subtitle=""):
     """
     Renders an electric modern header for the Streamlit app.
     """
+    render_custom_github_badge()
     st.markdown(f'<div class="main-title">{title}</div>', unsafe_allow_html=True)
     if subtitle:
         st.markdown(f'<div class="sub-title">{subtitle}</div>', unsafe_allow_html=True)
