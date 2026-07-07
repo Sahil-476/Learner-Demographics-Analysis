@@ -544,12 +544,12 @@ def render_kpi_card(title, value, subtitle="", icon="📊"):
 
 def render_footer():
     """
-    Renders the custom animated GitHub footer requested by the user.
+    Renders the custom animated LinkedIn footer requested by the user.
     """
     footer_html = """
     <div style="margin-top: 4.5rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.15); text-align: center; font-family: 'Inter', sans-serif; animation: fadeInSlideUp 0.8s ease;">
         <p style="color: #f1f5f9; font-size: 1.15rem; font-weight: 600; margin-bottom: 0.4rem; letter-spacing: 0.02em;">
-            Made with ❤️ by <a href="https://github.com/Sahil-476" target="_blank" style="color: #00F2FE; text-decoration: none; font-weight: 800; transition: all 0.3s ease; text-shadow: 0 0 15px rgba(0, 242, 254, 0.4);">Sahil</a>
+            Made with ❤️ by <a href="https://www.linkedin.com/in/sk-mahammad-sahil" target="_blank" style="color: #00F2FE; text-decoration: none; font-weight: 800; transition: all 0.3s ease; text-shadow: 0 0 15px rgba(0, 242, 254, 0.4);">Sahil</a>
         </p>
         <p style="color: #94a3b8; font-size: 0.95rem; margin-top: 0; font-weight: 500;">
             © 2026 Sahil. All rights reserved.

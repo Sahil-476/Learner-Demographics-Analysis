@@ -123,7 +123,7 @@ st.sidebar.markdown(f"""
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
 <div style="text-align: center; font-size: 0.85rem; color: #cbd5e1; padding-top: 5px; line-height: 1.5;">
-    Made with ❤️ by <a href="https://github.com/Sahil-476" target="_blank" style="color: #818cf8; text-decoration: none; font-weight: 700;">Sahil</a><br>
+    Made with ❤️ by <a href="https://www.linkedin.com/in/sk-mahammad-sahil" target="_blank" style="color: #818cf8; text-decoration: none; font-weight: 700;">Sahil</a><br>
     © 2026 Sahil
 </div>
 """, unsafe_allow_html=True)
