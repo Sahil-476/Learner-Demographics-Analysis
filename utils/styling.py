@@ -247,7 +247,40 @@ def inject_custom_css(theme="dark"):
         [data-testid="stVerticalBlockBorderWrapper"]:nth-child(5) {{ animation-delay: 0.33s; }}
         [data-testid="stVerticalBlockBorderWrapper"]:nth-child(6) {{ animation-delay: 0.40s; }}
 
-        /* Vibrant KPI Metric Cards */
+        /* Dynamic KPI Metric Cards & Number Reveal Animations */
+        @keyframes kpiCardPopIn {{
+            0% {{
+                opacity: 0;
+                transform: translateY(18px) scale(0.92);
+            }}
+            65% {{
+                opacity: 1;
+                transform: translateY(-3px) scale(1.02);
+            }}
+            100% {{
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }}
+        }}
+
+        @keyframes kpiNumberRollIn {{
+            0% {{
+                opacity: 0;
+                transform: translateY(14px) scale(0.85);
+                filter: blur(6px);
+            }}
+            60% {{
+                opacity: 1;
+                transform: translateY(-2px) scale(1.05);
+                filter: blur(0px);
+            }}
+            100% {{
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0px);
+            }}
+        }}
+
         .kpi-card {{
             background: { "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(241,245,249,0.95) 100%)" if is_light else "linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(42, 8, 69, 0.85) 100%)" };
             border-radius: 18px;
@@ -258,7 +291,7 @@ def inject_custom_css(theme="dark"):
             border-left: 5px solid #00F2FE;
             box-shadow: {card_shadow};
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            animation: fadeInSlideUp 0.5s ease forwards;
+            animation: kpiCardPopIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }}
 
         .kpi-card:hover {{
@@ -303,7 +336,7 @@ def inject_custom_css(theme="dark"):
             font-weight: 800;
             font-family: 'Outfit', sans-serif;
             margin-bottom: 0.3rem;
-            animation: gradientMove 5s ease infinite;
+            animation: kpiNumberRollIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards, gradientMove 5s ease infinite;
             position: relative;
             z-index: 1;
         }}
