@@ -303,20 +303,9 @@ def inject_custom_css(theme="dark"):
             font-weight: 800;
             font-family: 'Outfit', sans-serif;
             margin-bottom: 0.3rem;
-            animation: kpiPopIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards, gradientMove 5s ease infinite;
+            animation: gradientMove 5s ease infinite;
             position: relative;
             z-index: 1;
-        }}
-
-        @keyframes kpiPopIn {{
-            0% {{
-                opacity: 0;
-                transform: translateY(14px) scale(0.92);
-            }}
-            100% {{
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }}
         }}
 
         .kpi-subtitle {{
@@ -555,18 +544,8 @@ def inject_premium_frontend_engine():
     # 2. Inject JS for GSAP, ScrollTrigger, Lenis, CountUp, AOS, tsParticles, and Mouse Spotlight
     js_code = """
     <script>
-    function getTargetDoc() {
-        try { if (window.top && window.top.document) return window.top.document; } catch(e) {}
-        try { if (window.parent && window.parent.document) return window.parent.document; } catch(e) {}
-        return document;
-    }
-    function getTargetWin() {
-        try { if (window.top && window.top.document) return window.top; } catch(e) {}
-        try { if (window.parent && window.parent.document) return window.parent; } catch(e) {}
-        return window;
-    }
-    const parentDoc = getTargetDoc();
-    const parentWin = getTargetWin();
+    const parentDoc = window.parent.document;
+    const parentWin = window.parent;
 
     // A. Load External Libraries (Lenis, GSAP, AOS, tsParticles) safely via CDN
     function loadScript(src, callback) {
@@ -690,47 +669,55 @@ def inject_premium_frontend_engine():
 
     // E. High-Performance RAF Number CountUp Engine starting from 0
     function runCountUpAnimations() {
-        const countElements = parentDoc.querySelectorAll('.kpi-value[data-countup]:not([data-counted="true"])');
-        countElements.forEach(el => {
-            el.setAttribute('data-counted', 'true');
-            const targetStr = el.getAttribute('data-countup');
-            const isPercent = targetStr.includes('%');
-            const rawNum = parseFloat(targetStr.replace(/[^0-9.]/g, '')) || 0;
-            const prefix = el.getAttribute('data-prefix') || '';
-            const suffix = el.getAttribute('data-suffix') || (isPercent ? '%' : '');
-            
-            // Determine decimal precision based on targetStr
-            let decimals = 0;
-            const matchDec = targetStr.match(/\\.([0-9]+)/);
-            if (matchDec) {
-                decimals = matchDec[1].length;
-            }
-            
-            let startTime = null;
-            const duration = 1600; // 1.6 seconds smooth countup from 0
-            
-            function step(timestamp) {
-                if (!startTime) startTime = timestamp;
-                const progress = Math.min((timestamp - startTime) / duration, 1);
-                const easeOut = 1 - Math.pow(1 - progress, 3);
-                const currentVal = rawNum * easeOut;
+        try {
+            const countElements = parentDoc.querySelectorAll('.kpi-value[data-countup]:not([data-counted="true"])');
+            countElements.forEach(el => {
+                el.setAttribute('data-counted', 'true');
+                const targetStr = el.getAttribute('data-countup') || '0';
+                const prefix = el.getAttribute('data-prefix') || '';
+                const suffix = el.getAttribute('data-suffix') || '';
+                const isPercent = targetStr.includes('%');
+                const effectiveSuffix = suffix || (isPercent ? '%' : '');
                 
-                let formatted;
-                if (decimals > 0) {
-                    formatted = currentVal.toFixed(decimals);
-                } else {
-                    formatted = Math.floor(currentVal).toLocaleString();
-                }
-                el.innerText = `${prefix}${formatted}${suffix}`;
+                const rawNum = parseFloat(targetStr.replace(/[^0-9.-]/g, '')) || 0;
                 
-                if (progress < 1) {
-                    requestAnimationFrame(step);
-                } else {
-                    el.innerText = targetStr; // Ensure exact final string
+                let finalDisplay = targetStr;
+                if (prefix && !finalDisplay.startsWith(prefix)) finalDisplay = prefix + finalDisplay;
+                if (effectiveSuffix && !finalDisplay.endsWith(effectiveSuffix)) finalDisplay = finalDisplay + effectiveSuffix;
+                
+                let decimals = 0;
+                const matchDec = targetStr.match(/[.]([0-9]+)/);
+                if (matchDec) {
+                    decimals = matchDec[1].length;
                 }
-            }
-            requestAnimationFrame(step);
-        });
+                
+                let startTime = null;
+                const duration = 1400;
+                
+                function step(timestamp) {
+                    if (!startTime) startTime = timestamp;
+                    const progress = Math.min((timestamp - startTime) / duration, 1);
+                    const easeOut = 1 - Math.pow(1 - progress, 3);
+                    const currentVal = rawNum * easeOut;
+                    
+                    let formatted;
+                    if (decimals > 0) {
+                        formatted = currentVal.toFixed(decimals);
+                    } else {
+                        formatted = Math.floor(currentVal).toLocaleString();
+                    }
+                    
+                    el.innerText = `${prefix}${formatted}${effectiveSuffix}`;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(step);
+                    } else {
+                        el.innerText = finalDisplay;
+                    }
+                }
+                requestAnimationFrame(step);
+            });
+        } catch(err) {}
     }
 
     // Observe Streamlit DOM mutations so tab switches trigger count up from 0
@@ -840,15 +827,18 @@ def render_kpi_card(title, value, subtitle="", icon="📊", prefix="", suffix=""
     Renders an HTML/CSS styled KPI card with vibrant neon hover glow animation,
     Mouse Spotlight support, and CountUp data attributes for smooth number counting.
     """
-    # Clean string value for CountUp target
     val_str = str(value)
-    initial_str = f"{prefix}{val_str}{suffix}"
+    display_str = val_str
+    if prefix and not display_str.startswith(prefix):
+        display_str = f"{prefix}{display_str}"
+    if suffix and not display_str.endswith(suffix):
+        display_str = f"{display_str}{suffix}"
 
     html = f"""
     <div class="kpi-card" data-aos="zoom-in-up">
         <div class="kpi-icon">{icon}</div>
         <div class="kpi-title">{title}</div>
-        <div class="kpi-value" data-countup="{val_str}" data-prefix="{prefix}" data-suffix="{suffix}">{initial_str}</div>
+        <div class="kpi-value" data-countup="{val_str}" data-prefix="{prefix}" data-suffix="{suffix}">{display_str}</div>
         <div class="kpi-subtitle">{subtitle}</div>
     </div>
     """
