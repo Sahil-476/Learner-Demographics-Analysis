@@ -668,68 +668,77 @@ def inject_premium_frontend_engine():
     }, { passive: true });
 
     // E. High-Performance RAF Number CountUp Engine starting from 0
-    function runCountUpAnimations() {
-        try {
-            const countElements = parentDoc.querySelectorAll('.kpi-value[data-countup]:not([data-counted="true"])');
-            countElements.forEach(el => {
-                el.setAttribute('data-counted', 'true');
-                const targetStr = el.getAttribute('data-countup') || '0';
-                const prefix = el.getAttribute('data-prefix') || '';
-                const suffix = el.getAttribute('data-suffix') || '';
-                const isPercent = targetStr.includes('%');
-                const effectiveSuffix = suffix || (isPercent ? '%' : '');
-                
-                const rawNum = parseFloat(targetStr.replace(/[^0-9.-]/g, '')) || 0;
-                
-                let finalDisplay = targetStr;
-                if (prefix && !finalDisplay.startsWith(prefix)) finalDisplay = prefix + finalDisplay;
-                if (effectiveSuffix && !finalDisplay.endsWith(effectiveSuffix)) finalDisplay = finalDisplay + effectiveSuffix;
-                
-                let decimals = 0;
-                const matchDec = targetStr.match(/[.]([0-9]+)/);
-                if (matchDec) {
-                    decimals = matchDec[1].length;
-                }
-                
-                let startTime = null;
-                const duration = 1400;
-                
-                function step(timestamp) {
-                    if (!startTime) startTime = timestamp;
-                    const progress = Math.min((timestamp - startTime) / duration, 1);
-                    const easeOut = 1 - Math.pow(1 - progress, 3);
-                    const currentVal = rawNum * easeOut;
-                    
-                    let formatted;
-                    if (decimals > 0) {
-                        formatted = currentVal.toFixed(decimals);
-                    } else {
-                        formatted = Math.floor(currentVal).toLocaleString();
-                    }
-                    
-                    el.innerText = `${prefix}${formatted}${effectiveSuffix}`;
-                    
-                    if (progress < 1) {
-                        requestAnimationFrame(step);
-                    } else {
-                        el.innerText = finalDisplay;
-                    }
-                }
+    function animateCountUpElement(el) {
+        if (!el || el.getAttribute('data-animating') === 'true') return;
+        el.setAttribute('data-animating', 'true');
+        el.setAttribute('data-counted', 'true');
+        
+        const targetStr = el.getAttribute('data-countup') || '0';
+        const prefix = el.getAttribute('data-prefix') || '';
+        const suffix = el.getAttribute('data-suffix') || '';
+        const isPercent = targetStr.includes('%');
+        const effectiveSuffix = suffix || (isPercent ? '%' : '');
+        
+        const rawNum = parseFloat(targetStr.replace(/[^0-9.-]/g, '')) || 0;
+        
+        let finalDisplay = targetStr;
+        if (prefix && !finalDisplay.startsWith(prefix)) finalDisplay = prefix + finalDisplay;
+        if (effectiveSuffix && !finalDisplay.endsWith(effectiveSuffix)) finalDisplay = finalDisplay + effectiveSuffix;
+        
+        let decimals = 0;
+        const matchDec = targetStr.match(/[.]([0-9]+)/);
+        if (matchDec) decimals = matchDec[1].length;
+        
+        let startTime = null;
+        const duration = 1200;
+        
+        function step(timestamp) {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const currentVal = rawNum * easeOut;
+            
+            let formatted = decimals > 0 ? currentVal.toFixed(decimals) : Math.floor(currentVal).toLocaleString();
+            el.innerText = `${prefix}${formatted}${effectiveSuffix}`;
+            
+            if (progress < 1) {
                 requestAnimationFrame(step);
-            });
-        } catch(err) {}
+            } else {
+                el.innerText = finalDisplay;
+                el.removeAttribute('data-animating');
+            }
+        }
+        requestAnimationFrame(step);
     }
 
-    // Observe Streamlit DOM mutations so tab switches trigger count up from 0
+    function runAllUncounted() {
+        try {
+            parentDoc.querySelectorAll('.kpi-value[data-countup]:not([data-counted="true"])').forEach(el => {
+                animateCountUpElement(el);
+            });
+        } catch(e) {}
+    }
+
+    function resetAndReanimateAll() {
+        try {
+            parentDoc.querySelectorAll('.kpi-value[data-countup]').forEach(el => {
+                el.removeAttribute('data-counted');
+                el.removeAttribute('data-animating');
+                animateCountUpElement(el);
+            });
+        } catch(e) {}
+    }
+
+    // Observe Streamlit DOM mutations so filter changes trigger count up from 0
     const observer = new MutationObserver(() => {
-        runCountUpAnimations();
+        runAllUncounted();
     });
     if (parentDoc.body) {
         observer.observe(parentDoc.body, { childList: true, subtree: true });
     }
 
-    setInterval(runCountUpAnimations, 600);
-    setTimeout(runCountUpAnimations, 150);
+    setInterval(runAllUncounted, 600);
+    setTimeout(runAllUncounted, 150);
 
     // Instant zero-loop autoscale on first load and Tab Click for all Plotly charts
     function autoscaleAllChartsNow() {
@@ -764,13 +773,6 @@ def inject_premium_frontend_engine():
         try { parentWin.dispatchEvent(new Event('resize')); } catch(e) {}
     }
 
-    function triggerAllAnimationsNow() {
-        parentDoc.querySelectorAll('.kpi-value[data-countup]').forEach(el => {
-            el.removeAttribute('data-counted');
-        });
-        runCountUpAnimations();
-    }
-
     parentDoc.addEventListener('click', function(e) {
         const tabHeader = e.target.closest('[role="tab"], button[data-baseweb="tab"]');
         if (tabHeader) {
@@ -778,7 +780,9 @@ def inject_premium_frontend_engine():
             setTimeout(autoscaleAllChartsNow, 120);
             setTimeout(autoscaleAllChartsNow, 300);
             setTimeout(autoscaleAllChartsNow, 600);
-            setTimeout(triggerAllAnimationsNow, 50);
+            setTimeout(resetAndReanimateAll, 50);
+            setTimeout(resetAndReanimateAll, 200);
+            setTimeout(resetAndReanimateAll, 450);
         }
     }, { passive: true });
 
