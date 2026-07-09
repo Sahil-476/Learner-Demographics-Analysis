@@ -700,11 +700,11 @@ def inject_premium_frontend_engine():
         });
     }, { passive: true });
 
-    // E. High-Performance RAF Number CountUp Engine starting from 0
+    // E. High-Performance Visibility-Aware CountUp Engine
     function animateCountUpElement(el) {
         if (!el || el.getAttribute('data-animating') === 'true') return;
         el.setAttribute('data-animating', 'true');
-        el.setAttribute('data-counted', 'true');
+        el.setAttribute('data-active-anim', 'true');
         
         const targetStr = el.getAttribute('data-countup') || '0';
         const prefix = el.getAttribute('data-prefix') || '';
@@ -744,34 +744,40 @@ def inject_premium_frontend_engine():
         requestAnimationFrame(step);
     }
 
-    function runAllUncounted() {
-        try {
-            parentDoc.querySelectorAll('.kpi-value[data-countup]:not([data-counted="true"])').forEach(el => {
-                animateCountUpElement(el);
-            });
-        } catch(e) {}
-    }
-
-    function resetAndReanimateAll() {
+    // Animate only currently visible KPI cards in the active tab
+    function animateAllVisibleKpis() {
         try {
             parentDoc.querySelectorAll('.kpi-value[data-countup]').forEach(el => {
-                el.removeAttribute('data-counted');
-                el.removeAttribute('data-animating');
-                animateCountUpElement(el);
+                // Check if element is currently visible on screen (active tab)
+                if (el.offsetParent !== null && !el.getAttribute('data-active-anim')) {
+                    animateCountUpElement(el);
+                }
             });
         } catch(e) {}
     }
 
-    // Observe Streamlit DOM mutations so filter changes trigger count up from 0
+    // Clear active animation state on all KPI cards when switching tabs
+    function resetAllKpiAnimations() {
+        try {
+            parentDoc.querySelectorAll('.kpi-value[data-countup]').forEach(el => {
+                el.removeAttribute('data-active-anim');
+                el.removeAttribute('data-animating');
+            });
+            animateAllVisibleKpis();
+        } catch(e) {}
+    }
+
+    // Observe Streamlit DOM mutations so filter updates trigger count up
     const observer = new MutationObserver(() => {
-        runAllUncounted();
+        animateAllVisibleKpis();
     });
     if (parentDoc.body) {
         observer.observe(parentDoc.body, { childList: true, subtree: true });
     }
 
-    setInterval(runAllUncounted, 600);
-    setTimeout(runAllUncounted, 150);
+    // Regularly scan for any newly visible KPI cards
+    setInterval(animateAllVisibleKpis, 250);
+    setTimeout(animateAllVisibleKpis, 100);
 
     // Instant zero-loop autoscale on first load and Tab Click for all Plotly charts
     function autoscaleAllChartsNow() {
@@ -807,15 +813,17 @@ def inject_premium_frontend_engine():
     }
 
     parentDoc.addEventListener('click', function(e) {
-        const tabHeader = e.target.closest('[role="tab"], button[data-baseweb="tab"]');
+        const tabHeader = e.target.closest('[role="tab"], [data-testid="stTab"], button[data-baseweb="tab"], .stTabs button');
         if (tabHeader) {
             setTimeout(autoscaleAllChartsNow, 30);
             setTimeout(autoscaleAllChartsNow, 120);
             setTimeout(autoscaleAllChartsNow, 300);
             setTimeout(autoscaleAllChartsNow, 600);
-            setTimeout(resetAndReanimateAll, 50);
-            setTimeout(resetAndReanimateAll, 200);
-            setTimeout(resetAndReanimateAll, 450);
+            
+            setTimeout(resetAllKpiAnimations, 20);
+            setTimeout(resetAllKpiAnimations, 150);
+            setTimeout(resetAllKpiAnimations, 350);
+            setTimeout(resetAllKpiAnimations, 650);
         }
     }, { passive: true });
 
