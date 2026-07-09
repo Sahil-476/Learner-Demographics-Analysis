@@ -303,9 +303,20 @@ def inject_custom_css(theme="dark"):
             font-weight: 800;
             font-family: 'Outfit', sans-serif;
             margin-bottom: 0.3rem;
-            animation: gradientMove 5s ease infinite;
+            animation: kpiPopIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards, gradientMove 5s ease infinite;
             position: relative;
             z-index: 1;
+        }}
+
+        @keyframes kpiPopIn {{
+            0% {{
+                opacity: 0;
+                transform: translateY(14px) scale(0.92);
+            }}
+            100% {{
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }}
         }}
 
         .kpi-subtitle {{
@@ -544,8 +555,18 @@ def inject_premium_frontend_engine():
     # 2. Inject JS for GSAP, ScrollTrigger, Lenis, CountUp, AOS, tsParticles, and Mouse Spotlight
     js_code = """
     <script>
-    const parentDoc = window.parent.document;
-    const parentWin = window.parent;
+    function getTargetDoc() {
+        try { if (window.top && window.top.document) return window.top.document; } catch(e) {}
+        try { if (window.parent && window.parent.document) return window.parent.document; } catch(e) {}
+        return document;
+    }
+    function getTargetWin() {
+        try { if (window.top && window.top.document) return window.top; } catch(e) {}
+        try { if (window.parent && window.parent.document) return window.parent; } catch(e) {}
+        return window;
+    }
+    const parentDoc = getTargetDoc();
+    const parentWin = getTargetWin();
 
     // A. Load External Libraries (Lenis, GSAP, AOS, tsParticles) safely via CDN
     function loadScript(src, callback) {
@@ -821,13 +842,7 @@ def render_kpi_card(title, value, subtitle="", icon="📊", prefix="", suffix=""
     """
     # Clean string value for CountUp target
     val_str = str(value)
-    if "%" in val_str:
-        initial_str = "0.0%" if "." in val_str else "0%"
-    elif "." in val_str:
-        dec_count = len(val_str.split(".")[1])
-        initial_str = "0." + "0" * dec_count
-    else:
-        initial_str = "0"
+    initial_str = f"{prefix}{val_str}{suffix}"
 
     html = f"""
     <div class="kpi-card" data-aos="zoom-in-up">
