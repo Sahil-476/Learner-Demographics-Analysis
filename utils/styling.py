@@ -42,89 +42,125 @@ TYPE_COLORS = {
     'Paid': '#7F00FF'    # Electric Purple
 }
 
-def inject_custom_css():
+def inject_custom_css(theme="dark"):
     """
-    Injects ultra-modern, hyper-vibrant CSS into Streamlit for a luminous dark-hybrid UI with
-    glassmorphism, rainbow borders, glowing KPI cards, animated multi-gradient backgrounds, and smooth transitions.
+    Injects ultra-modern, hyper-vibrant CSS into Streamlit for a luminous UI with
+    glassmorphism, rainbow borders, glowing KPI cards, animated multi-gradient backgrounds,
+    staggered section loading, hover lift cards, hover glow buttons, and dark/light mode adaptability.
     """
-    st.markdown("""
+    is_light = (theme == "light")
+    
+    # Theme color definitions
+    bg_gradient = (
+        "linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px), linear-gradient(-45deg, #f8fafc, #e2e8f0, #cbd5e1, #f1f5f9)"
+        if is_light else
+        "linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px), linear-gradient(-45deg, #0f172a, #1e1b4b, #2a0845, #0f172a)"
+    )
+    text_color = "#0f172a" if is_light else "#f8fafc"
+    card_bg = "rgba(255, 255, 255, 0.82)" if is_light else "rgba(30, 41, 59, 0.65)"
+    card_border = "rgba(0, 0, 0, 0.12)" if is_light else "rgba(255, 255, 255, 0.18)"
+    card_shadow = "0 10px 30px 0 rgba(0, 0, 0, 0.1)" if is_light else "0 10px 30px 0 rgba(0, 0, 0, 0.3)"
+    heading_color = "#0f172a" if is_light else "#ffffff"
+    subtext_color = "#475569" if is_light else "#cbd5e1"
+    tab_list_bg = "rgba(241, 245, 249, 0.9)" if is_light else "rgba(15, 23, 42, 0.8)"
+    sidebar_bg = "linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%)" if is_light else "linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%)"
+
+    st.markdown(f"""
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
         /* Keyframe Animations */
-        @keyframes fadeInSlideUp {
-            0% { opacity: 0; transform: translateY(25px) scale(0.98); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
+        @keyframes fadeInSlideUp {{
+            0% {{ opacity: 0; transform: translateY(25px) scale(0.98); }}
+            100% {{ opacity: 1; transform: translateY(0) scale(1); }}
+        }}
 
-        @keyframes pulseGlow {
-            0%, 100% { box-shadow: 0 4px 20px rgba(0, 242, 254, 0.25), 0 0 10px rgba(255, 0, 127, 0.15); }
-            50% { box-shadow: 0 8px 35px rgba(255, 0, 127, 0.55), 0 0 25px rgba(0, 242, 254, 0.45); }
-        }
+        @keyframes heroEntrance {{
+            0% {{ opacity: 0; transform: perspective(1000px) rotateX(12deg) translateY(-35px) scale(0.94); }}
+            100% {{ opacity: 1; transform: perspective(1000px) rotateX(0deg) translateY(0) scale(1); }}
+        }}
 
-        @keyframes gradientMove {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        @keyframes pulseGlow {{
+            0%, 100% {{ box-shadow: 0 4px 20px rgba(0, 242, 254, 0.25), 0 0 10px rgba(255, 0, 127, 0.15); }}
+            50% {{ box-shadow: 0 8px 35px rgba(255, 0, 127, 0.55), 0 0 25px rgba(0, 242, 254, 0.45); }}
+        }}
 
-        @keyframes bgShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        @keyframes gradientMove {{
+            0% {{ background-position: 0% 50%; }}
+            50% {{ background-position: 100% 50%; }}
+            100% {{ background-position: 0% 50%; }}
+        }}
 
-        @keyframes floatUpDown {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-        }
+        @keyframes bgShift {{
+            0% {{ background-position: 0% 50%; }}
+            50% {{ background-position: 100% 50%; }}
+            100% {{ background-position: 0% 50%; }}
+        }}
 
-        @keyframes borderShimmer {
-            0% { border-color: rgba(0, 242, 254, 0.4); }
-            50% { border-color: rgba(255, 0, 127, 0.8); }
-            100% { border-color: rgba(0, 242, 254, 0.4); }
-        }
+        @keyframes floatUpDown {{
+            0%, 100% {{ transform: translateY(0px); }}
+            50% {{ transform: translateY(-8px); }}
+        }}
 
-        @keyframes textShimmer {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        @keyframes borderShimmer {{
+            0% {{ border-color: rgba(0, 242, 254, 0.4); }}
+            50% {{ border-color: rgba(255, 0, 127, 0.8); }}
+            100% {{ border-color: rgba(0, 242, 254, 0.4); }}
+        }}
 
-        /* Root styling - Vibrant Aurora Grid & Multi-Gradient Dark Hybrid Theme */
-        html {
-            scroll-behavior: smooth !important;
-        }
+        @keyframes textShimmer {{
+            0% {{ background-position: 0% 50%; }}
+            50% {{ background-position: 100% 50%; }}
+            100% {{ background-position: 0% 50%; }}
+        }}
 
-        html, body, [class*="css"], .stApp {
-            font-family: 'Inter', sans-serif;
-            background-image: 
-                linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-                linear-gradient(-45deg, #0f172a, #1e1b4b, #2a0845, #0f172a) !important;
-            background-size: 45px 45px, 45px 45px, 400% 400% !important;
-            animation: bgShift 20s ease infinite !important;
-            color: #f8fafc !important;
+        /* Premium Chart Animation Keyframes */
+        @keyframes pieSpinDraw {{
+            0% {{ transform: scale(0.85) rotate(-45deg); opacity: 0; }}
+            100% {{ transform: scale(1) rotate(0deg); opacity: 1; }}
+        }}
+
+        @keyframes barGrowUp {{
+            0% {{ transform: scaleY(0.4); opacity: 0; transform-origin: bottom; }}
+            100% {{ transform: scaleY(1); opacity: 1; transform-origin: bottom; }}
+        }}
+
+        /* Loading Skeleton Keyframes */
+        @keyframes skeletonShimmer {{
+            0% {{ background-position: -200% 0; }}
+            100% {{ background-position: 200% 0; }}
+        }}
+
+        /* Root styling - Vibrant Aurora Grid & Multi-Gradient Theme */
+        /* Ensure smooth native scrolling across Streamlit view containers */
+        html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {{
+            overflow-y: auto !important;
             overflow-x: hidden !important;
-        }
+        }}
 
-        h1, h2, h3, h4, h5, h6 {
+        html, body, .stApp {{
+            font-family: 'Inter', sans-serif;
+            background-image: {bg_gradient} !important;
+            background-size: 45px 45px, 45px 45px, 100% 100% !important;
+            color: {text_color} !important;
+        }}
+
+        h1, h2, h3, h4, h5, h6 {{
             font-family: 'Outfit', sans-serif !important;
             font-weight: 700 !important;
             letter-spacing: -0.02em;
-            color: #ffffff !important;
-        }
+            color: {heading_color} !important;
+        }}
 
         /* App container */
-        .block-container {
+        .block-container {{
             padding-top: 2rem !important;
             padding-bottom: 3.5rem !important;
             max-width: 1400px !important;
-            animation: fadeInSlideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+        }}
 
         /* Custom Header Title - Electric Luminous Multi-Color Shimmer */
-        .main-title {
+        .main-title {{
             background: linear-gradient(270deg, #00f2fe, #ff007f, #00ff87, #7f00ff, #00f2fe);
             background-size: 300% 300%;
             -webkit-background-clip: text;
@@ -135,84 +171,104 @@ def inject_custom_css():
             font-family: 'Outfit', sans-serif;
             animation: textShimmer 5s ease infinite;
             text-shadow: 0 0 35px rgba(0, 242, 254, 0.35);
-        }
+        }}
 
-        .sub-title {
-            color: #e2e8f0;
+        .sub-title {{
+            color: {subtext_color};
             font-size: 1.2rem;
             margin-bottom: 2.2rem;
             font-weight: 400;
             letter-spacing: 0.01em;
-        }
+        }}
 
-        /* Glassmorphism Card Container - Vibrant Contrast */
-        .glass-card {
-            background: rgba(30, 41, 59, 0.65);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
+        /* Glassmorphism Card Container - Vibrant Contrast & Mouse Spotlight */
+        .glass-card {{
+            background: {card_bg};
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid {card_border};
             border-radius: 18px;
             padding: 1.6rem;
             margin-bottom: 1.5rem;
-            box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.3);
+            box-shadow: {card_shadow};
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             animation: fadeInSlideUp 0.5s ease forwards;
-        }
+            position: relative;
+            overflow: hidden;
+        }}
 
-        .glass-card:hover {
-            transform: translateY(-8px) scale(1.02) perspective(1000px) rotateX(1.5deg) !important;
+        /* Mouse Spotlight Glow Overlay */
+        .glass-card::before, [data-testid="stVerticalBlockBorderWrapper"]::before, .kpi-card::before {{
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(0, 242, 254, 0.12), transparent 40%);
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }}
+
+        .glass-card:hover::before, [data-testid="stVerticalBlockBorderWrapper"]:hover::before, .kpi-card:hover::before {{
+            opacity: 1;
+        }}
+
+        /* Hover Lift Cards Effect - Clean 2D Lift without perspective clipping */
+        .glass-card:hover {{
+            transform: translateY(-6px) !important;
             border-color: #00f2fe !important;
-            box-shadow: 0 20px 45px rgba(0, 242, 254, 0.35), 0 0 30px rgba(255, 0, 127, 0.25) !important;
-            animation: borderShimmer 3s infinite alternate !important;
-        }
+            box-shadow: 0 16px 35px rgba(0, 242, 254, 0.28), 0 0 25px rgba(255, 0, 127, 0.18) !important;
+        }}
 
         /* Streamlit Native Containers styled as Vibrant Glass Cards */
-        [data-testid="stVerticalBlockBorderWrapper"] {
-            background: rgba(30, 41, 59, 0.65) !important;
-            backdrop-filter: blur(18px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.16) !important;
+        [data-testid="stVerticalBlockBorderWrapper"] {{
+            background: {card_bg} !important;
+            backdrop-filter: blur(20px) !important;
+            border: 1px solid {card_border} !important;
             border-radius: 18px !important;
             padding: 1.1rem !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            box-shadow: {card_shadow} !important;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease !important;
             animation: fadeInSlideUp 0.6s ease forwards;
-        }
+            position: relative;
+        }}
 
-        [data-testid="stVerticalBlockBorderWrapper"]:hover {
-            transform: translateY(-8px) scale(1.015) perspective(1000px) rotateX(1deg) !important;
+        [data-testid="stVerticalBlockBorderWrapper"]:hover {{
+            transform: translateY(-6px) !important;
             border-color: #00f2fe !important;
-            box-shadow: 0 20px 45px rgba(0, 242, 254, 0.35), 0 0 35px rgba(127, 0, 255, 0.3) !important;
-            animation: borderShimmer 3s infinite alternate !important;
-        }
+            box-shadow: 0 16px 35px rgba(0, 242, 254, 0.28), 0 0 25px rgba(127, 0, 255, 0.22) !important;
+        }}
 
-        /* Staggered Card Reveals on Scroll / Load */
-        [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) { animation-delay: 0.05s; }
-        [data-testid="stVerticalBlockBorderWrapper"]:nth-child(2) { animation-delay: 0.1s; }
-        [data-testid="stVerticalBlockBorderWrapper"]:nth-child(3) { animation-delay: 0.15s; }
-        [data-testid="stVerticalBlockBorderWrapper"]:nth-child(4) { animation-delay: 0.2s; }
+        /* Staggered Section Loading */
+        [data-testid="stVerticalBlockBorderWrapper"]:nth-child(1) {{ animation-delay: 0.05s; }}
+        [data-testid="stVerticalBlockBorderWrapper"]:nth-child(2) {{ animation-delay: 0.12s; }}
+        [data-testid="stVerticalBlockBorderWrapper"]:nth-child(3) {{ animation-delay: 0.19s; }}
+        [data-testid="stVerticalBlockBorderWrapper"]:nth-child(4) {{ animation-delay: 0.26s; }}
+        [data-testid="stVerticalBlockBorderWrapper"]:nth-child(5) {{ animation-delay: 0.33s; }}
+        [data-testid="stVerticalBlockBorderWrapper"]:nth-child(6) {{ animation-delay: 0.40s; }}
 
         /* Vibrant KPI Metric Cards */
-        .kpi-card {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(42, 8, 69, 0.85) 100%);
+        .kpi-card {{
+            background: { "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(241,245,249,0.95) 100%)" if is_light else "linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(42, 8, 69, 0.85) 100%)" };
             border-radius: 18px;
             padding: 1.4rem;
             position: relative;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            border: 1px solid {card_border};
             border-left: 5px solid #00F2FE;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+            box-shadow: {card_shadow};
             transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             animation: fadeInSlideUp 0.5s ease forwards;
-        }
+        }}
 
-        .kpi-card:hover {
+        .kpi-card:hover {{
             transform: translateY(-10px) scale(1.035) perspective(1000px) rotateX(2deg) !important;
             border-left: 5px solid #FF007F !important;
             border-color: rgba(255, 0, 127, 0.8) !important;
             box-shadow: 0 22px 45px rgba(255, 0, 127, 0.45), 0 0 30px rgba(0, 242, 254, 0.35) !important;
-        }
+        }}
 
-        .kpi-icon {
+        .kpi-icon {{
             font-size: 2.6rem;
             position: absolute;
             right: 1.25rem;
@@ -220,23 +276,26 @@ def inject_custom_css():
             opacity: 0.95;
             transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             animation: floatUpDown 4s ease-in-out infinite;
-        }
+            z-index: 1;
+        }}
 
-        .kpi-card:hover .kpi-icon {
+        .kpi-card:hover .kpi-icon {{
             transform: scale(1.25) rotate(12deg);
-        }
+        }}
 
-        .kpi-title {
-            color: #e2e8f0;
+        .kpi-title {{
+            color: {subtext_color};
             font-size: 0.88rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.06em;
             margin-bottom: 0.5rem;
-        }
+            position: relative;
+            z-index: 1;
+        }}
 
-        .kpi-value {
-            background: linear-gradient(90deg, #ffffff, #00f2fe, #ff007f);
+        .kpi-value {{
+            background: linear-gradient(90deg, { "#0f172a" if is_light else "#ffffff" }, #00f2fe, #ff007f);
             background-size: 200% 200%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -245,43 +304,51 @@ def inject_custom_css():
             font-family: 'Outfit', sans-serif;
             margin-bottom: 0.3rem;
             animation: gradientMove 5s ease infinite;
-        }
+            position: relative;
+            z-index: 1;
+        }}
 
-        .kpi-subtitle {
+        .kpi-subtitle {{
             color: #00ff87;
             font-size: 0.9rem;
             font-weight: 600;
             letter-spacing: 0.02em;
-        }
+            position: relative;
+            z-index: 1;
+        }}
 
-        /* Streamlit Tabs - Vibrant Neon Customization */
-        .stTabs [data-baseweb="tab-list"] {
+        /* Streamlit Tabs - Vibrant Neon Customization with Smooth Page Transitions */
+        [data-testid="stTabContent"] {{
+            animation: fadeInSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }}
+
+        .stTabs [data-baseweb="tab-list"] {{
             gap: 12px;
-            background-color: rgba(15, 23, 42, 0.8);
+            background-color: {tab_list_bg};
             padding: 10px;
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        }
+            border: 1px solid {card_border};
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }}
 
-        .stTabs [data-baseweb="tab"] {
+        .stTabs [data-baseweb="tab"] {{
             height: 46px;
             white-space: pre-wrap;
             background-color: transparent;
             border-radius: 12px;
-            color: #cbd5e1;
+            color: {subtext_color};
             font-weight: 600;
             padding: 0 22px;
             transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+        }}
 
-        .stTabs [data-baseweb="tab"]:hover {
-            color: #ffffff;
-            background-color: rgba(255, 255, 255, 0.08);
+        .stTabs [data-baseweb="tab"]:hover {{
+            color: {heading_color};
+            background-color: rgba(127, 0, 255, 0.08);
             transform: translateY(-2px);
-        }
+        }}
 
-        .stTabs [aria-selected="true"] {
+        .stTabs [aria-selected="true"] {{
             background: linear-gradient(135deg, #FF007F 0%, #7F00FF 50%, #00F2FE 100%) !important;
             background-size: 200% 200% !important;
             animation: gradientMove 4s ease infinite !important;
@@ -290,22 +357,22 @@ def inject_custom_css():
             font-weight: 700 !important;
             box-shadow: 0 6px 25px rgba(255, 0, 127, 0.45), 0 0 15px rgba(0, 242, 254, 0.3) !important;
             transform: scale(1.02);
-        }
+        }}
 
         /* Sidebar Styling */
-        section[data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%) !important;
-            border-right: 1px solid rgba(255, 255, 255, 0.15);
-        }
+        section[data-testid="stSidebar"] {{
+            background: {sidebar_bg} !important;
+            border-right: 1px solid {card_border};
+        }}
 
-        /* Vibrant Animated Buttons (Neon Glow, Pulse, Ripple Click, Animated Gradient) */
-        @keyframes buttonPulse {
-            0% { box-shadow: 0 0 15px rgba(0, 242, 254, 0.4), 0 0 5px rgba(255, 0, 127, 0.3); }
-            50% { box-shadow: 0 0 30px rgba(255, 0, 127, 0.7), 0 0 18px rgba(0, 255, 135, 0.5); }
-            100% { box-shadow: 0 0 15px rgba(0, 242, 254, 0.4), 0 0 5px rgba(255, 0, 127, 0.3); }
-        }
+        /* Hover Glow Buttons (Neon Glow, Pulse, Ripple Click, Animated Gradient) */
+        @keyframes buttonPulse {{
+            0% {{ box-shadow: 0 0 15px rgba(0, 242, 254, 0.4), 0 0 5px rgba(255, 0, 127, 0.3); }}
+            50% {{ box-shadow: 0 0 30px rgba(255, 0, 127, 0.7), 0 0 18px rgba(0, 255, 135, 0.5); }}
+            100% {{ box-shadow: 0 0 15px rgba(0, 242, 254, 0.4), 0 0 5px rgba(255, 0, 127, 0.3); }}
+        }}
 
-        .stButton > button, .stDownloadButton > button, [data-testid="stBaseButton-secondary"] {
+        .stButton > button, .stDownloadButton > button, [data-testid="stBaseButton-secondary"] {{
             background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 30%, #7F00FF 60%, #FF007F 100%) !important;
             background-size: 300% 300% !important;
             color: white !important;
@@ -317,53 +384,84 @@ def inject_custom_css():
             animation: gradientMove 4s ease infinite, buttonPulse 3s infinite !important;
             letter-spacing: 0.03em !important;
             cursor: pointer !important;
-        }
+            position: relative;
+            overflow: hidden;
+        }}
 
-        .stButton > button:hover, .stDownloadButton > button:hover, [data-testid="stBaseButton-secondary"]:hover {
+        .stButton > button:hover, .stDownloadButton > button:hover, [data-testid="stBaseButton-secondary"]:hover {{
             transform: translateY(-4px) scale(1.05) !important;
-            box-shadow: 0 15px 35px rgba(255, 0, 127, 0.6), 0 0 30px rgba(0, 242, 254, 0.5) !important;
+            box-shadow: 0 18px 40px rgba(255, 0, 127, 0.7), 0 0 35px rgba(0, 242, 254, 0.6) !important;
             border-color: #00ff87 !important;
-        }
+        }}
 
-        .stButton > button:active, .stDownloadButton > button:active {
+        .stButton > button:active, .stDownloadButton > button:active {{
             transform: translateY(-1px) scale(0.98) !important;
-        }
+        }}
 
         /* Dashboard Effects: Animated KPI Metric Values & Dataframes */
-        [data-testid="stMetricValue"] {
-            background: linear-gradient(90deg, #ffffff, #00f2fe, #ff007f);
+        [data-testid="stMetricValue"] {{
+            background: linear-gradient(90deg, { "#0f172a" if is_light else "#ffffff" }, #00f2fe, #ff007f);
             background-size: 200% 200%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 800 !important;
             font-family: 'Outfit', sans-serif !important;
             animation: gradientMove 5s ease infinite !important;
-        }
+        }}
 
-        [data-testid="stDataFrame"] {
-            background-color: rgba(30, 41, 59, 0.7);
+        [data-testid="stDataFrame"] {{
+            background-color: {card_bg};
             border-radius: 16px;
             border: 1px solid rgba(0, 242, 254, 0.25);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+            box-shadow: {card_shadow};
             transition: all 0.4s ease;
-        }
+        }}
 
-        [data-testid="stDataFrame"]:hover {
+        [data-testid="stDataFrame"]:hover {{
             border-color: #ff007f;
             box-shadow: 0 15px 35px rgba(255, 0, 127, 0.25), 0 0 20px rgba(0, 242, 254, 0.2);
             transform: translateY(-4px);
-        }
+        }}
+
+        /* Plotly Chart Container Animation (Pie Chart Drawing & Bar Growth) */
+        [data-testid="stPlotlyChart"] {{
+            animation: pieSpinDraw 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }}
+
+        /* Loading Skeleton Box Styling */
+        .loading-skeleton-box {{
+            background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(0,242,254,0.2) 50%, rgba(255,255,255,0.05) 75%);
+            background-size: 200% 100%;
+            animation: skeletonShimmer 1.8s infinite linear;
+            border-radius: 14px;
+            height: 90px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }}
     </style>
     """, unsafe_allow_html=True)
 
 def inject_cursor_bubble():
     """
-    Injects 4 vibrant background animated glowing CSS spheres and an interactive JavaScript cursor bubble
-    that smoothly follows mouse movements across the Streamlit app with electric neon colors.
+    Alias for backward compatibility. Directs to the comprehensive frontend engine.
     """
-    # 1. Inject CSS for 4 vibrant ambient floating spheres
+    inject_premium_frontend_engine()
+
+def inject_premium_frontend_engine():
+    """
+    Injects 4 morphing gradient blobs, tsParticles interactive background canvas,
+    and a robust JavaScript engine supporting GSAP, ScrollTrigger, Lenis smooth scrolling,
+    CountUp.js number animations, AOS (Animate On Scroll), and Mouse Spotlight tracking.
+    """
+    # 1. Inject CSS for 4 organic morphing gradient blobs
     st.markdown("""
     <style>
+        @keyframes blobMorph {
+            0%, 100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; transform: translate(0, 0) rotate(0deg) scale(1); }
+            33% { border-radius: 70% 30% 50% 50% / 30% 30% 70% 70%; transform: translate(140px, -90px) rotate(120deg) scale(1.15); }
+            66% { border-radius: 100% 60% 60% 100% / 100% 100% 60% 60%; transform: translate(-120px, 140px) rotate(240deg) scale(0.85); }
+        }
+
         @keyframes floatOrb1 {
             0%, 100% { transform: translate(0, 0) scale(1); }
             33% { transform: translate(150px, -100px) scale(1.2); }
@@ -376,185 +474,170 @@ def inject_cursor_bubble():
             66% { transform: translate(120px, -120px) scale(1.15); }
         }
 
-        @keyframes floatOrb3 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(130px, 130px) scale(1.1); }
-        }
-
-        @keyframes floatOrb4 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(-140px, -140px) scale(0.95); }
-        }
-
-        .stApp::before {
-            content: "";
-            position: fixed;
-            top: 5%;
-            left: 5%;
-            width: 480px;
-            height: 480px;
+        .ambient-blob-1 {
+            position: fixed; top: 5%; left: 5%; width: 480px; height: 480px;
             background: radial-gradient(circle, rgba(0, 242, 254, 0.22) 0%, rgba(127, 0, 255, 0.08) 50%, transparent 70%);
-            border-radius: 50%;
-            filter: blur(40px);
-            z-index: 0;
-            pointer-events: none;
-            animation: floatOrb1 20s ease-in-out infinite;
+            border-radius: 50%; filter: blur(40px); z-index: 0; pointer-events: none;
+            animation: blobMorph 24s ease-in-out infinite;
         }
 
-        .stApp::after {
-            content: "";
-            position: fixed;
-            bottom: 5%;
-            right: 5%;
-            width: 520px;
-            height: 520px;
+        .ambient-blob-2 {
+            position: fixed; bottom: 5%; right: 5%; width: 520px; height: 520px;
             background: radial-gradient(circle, rgba(255, 0, 127, 0.22) 0%, rgba(0, 255, 135, 0.08) 50%, transparent 70%);
-            border-radius: 50%;
-            filter: blur(45px);
-            z-index: 0;
-            pointer-events: none;
-            animation: floatOrb2 24s ease-in-out infinite;
+            border-radius: 50%; filter: blur(45px); z-index: 0; pointer-events: none;
+            animation: blobMorph 28s ease-in-out infinite reverse;
         }
 
-        /* Additional Ambient Neon Orbs */
-        .ambient-orb-3 {
-            position: fixed;
-            top: 60%;
-            left: 10%;
-            width: 400px;
-            height: 400px;
+        .ambient-blob-3 {
+            position: fixed; top: 60%; left: 10%; width: 400px; height: 400px;
             background: radial-gradient(circle, rgba(0, 255, 135, 0.16) 0%, rgba(0, 205, 172, 0.05) 50%, transparent 70%);
-            border-radius: 50%;
-            filter: blur(50px);
-            z-index: 0;
-            pointer-events: none;
-            animation: floatOrb3 22s ease-in-out infinite;
+            border-radius: 50%; filter: blur(50px); z-index: 0; pointer-events: none;
+            animation: floatOrb1 22s ease-in-out infinite;
         }
 
-        .ambient-orb-4 {
-            position: fixed;
-            top: 15%;
-            right: 15%;
-            width: 450px;
-            height: 450px;
+        .ambient-blob-4 {
+            position: fixed; top: 15%; right: 15%; width: 450px; height: 450px;
             background: radial-gradient(circle, rgba(127, 0, 255, 0.18) 0%, rgba(248, 87, 166, 0.06) 50%, transparent 70%);
-            border-radius: 50%;
-            filter: blur(45px);
-            z-index: 0;
-            pointer-events: none;
+            border-radius: 50%; filter: blur(45px); z-index: 0; pointer-events: none;
+            animation: floatOrb2 25s ease-in-out infinite;
+        }
+
         /* Custom Top-Right Fork & GitHub Badge */
         .custom-github-badge-container {
-            position: fixed;
-            top: 14px;
-            right: 20px;
-            z-index: 999999;
-            display: flex;
-            align-items: center;
-            gap: 22px;
+            position: fixed; top: 14px; right: 20px; z-index: 999999;
+            display: flex; align-items: center; gap: 22px;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
 
         .github-badge-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            line-height: 1.2;
-            color: #ffffff !important;
-            background: rgba(30, 41, 59, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            border-radius: 20px;
-            text-decoration: none !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+            font-size: 0.85rem; font-weight: 600; line-height: 1.2;
+            color: #ffffff !important; background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 20px;
+            text-decoration: none !important; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35); transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             cursor: pointer;
         }
 
         .github-badge-btn:hover {
-            transform: translateY(-2px) scale(1.05);
-            border-color: #00F2FE !important;
-            box-shadow: 0 0 18px rgba(0, 242, 254, 0.5), 0 4px 20px rgba(255, 0, 127, 0.3);
-            color: #00F2FE !important;
+            transform: translateY(-2px) scale(1.05); border-color: #00F2FE !important;
+            box-shadow: 0 0 18px rgba(0, 242, 254, 0.5), 0 4px 20px rgba(255, 0, 127, 0.3); color: #00F2FE !important;
         }
 
         .fork-btn:hover {
             border-color: #FF007F !important;
-            box-shadow: 0 0 18px rgba(255, 0, 127, 0.5), 0 4px 20px rgba(0, 242, 254, 0.3);
-            color: #FF007F !important;
+            box-shadow: 0 0 18px rgba(255, 0, 127, 0.5), 0 4px 20px rgba(0, 242, 254, 0.3); color: #FF007F !important;
         }
 
         @media (max-width: 768px) {
             .custom-github-badge-container {
-                position: static;
-                margin-bottom: 15px;
-                justify-content: flex-end;
+                position: static; margin-bottom: 15px; justify-content: flex-end;
             }
         }
     </style>
-    <div class="ambient-orb-3"></div>
-    <div class="ambient-orb-4"></div>
+    <div class="ambient-blob-1"></div>
+    <div class="ambient-blob-2"></div>
+    <div class="ambient-blob-3"></div>
+    <div class="ambient-blob-4"></div>
     """, unsafe_allow_html=True)
 
-    # 2. Inject JS for ultra-vibrant interactive cursor bubble & Top Scroll Progress Bar
+    # 2. Inject JS for GSAP, ScrollTrigger, Lenis, CountUp, AOS, tsParticles, and Mouse Spotlight
     js_code = """
     <script>
     const parentDoc = window.parent.document;
-    
-    // 1. Interactive Cursor Tracking Bubble with Ripple & Glow
+    const parentWin = window.parent;
+
+    // A. Load External Libraries (Lenis, GSAP, AOS, tsParticles) safely via CDN
+    function loadScript(src, callback) {
+        if (!parentDoc.querySelector(`script[src="${src}"]`)) {
+            const script = parentDoc.createElement('script');
+            script.src = src;
+            script.async = true;
+            script.onload = callback;
+            parentDoc.head.appendChild(script);
+        } else if (callback) {
+            callback();
+        }
+    }
+
+    // Clean up any existing Lenis instance to restore native touchpad 2-finger and mouse wheel scrolling
+    if (parentWin._lenisInstance) {
+        try { parentWin._lenisInstance.destroy(); } catch(e) {}
+        parentWin._lenisInstance = null;
+    }
+
+    // Load AOS (Animate On Scroll)
+    if (!parentDoc.querySelector('link[href*="aos.css"]')) {
+        const link = parentDoc.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css';
+        parentDoc.head.appendChild(link);
+    }
+    loadScript('https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js', () => {
+        if (parentWin.AOS) {
+            parentWin.AOS.init({ duration: 800, once: false, mirror: true });
+        }
+    });
+
+    // Load tsParticles for background starfield constellation
+    loadScript('https://cdn.jsdelivr.net/npm/tsparticles-slim@2.12.0/tsparticles.slim.bundle.min.js', () => {
+        if (parentWin.tsParticles && !parentDoc.getElementById('tsparticles-bg')) {
+            const bgDiv = parentDoc.createElement('div');
+            bgDiv.id = 'tsparticles-bg';
+            bgDiv.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; opacity:0.6;';
+            parentDoc.body.prepend(bgDiv);
+            
+            parentWin.tsParticles.load("tsparticles-bg", {
+                fpsLimit: 60,
+                particles: {
+                    number: { value: 35, density: { enable: true, value_area: 800 } },
+                    color: { value: ["#00F2FE", "#FF007F", "#00FF87"] },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5, random: true },
+                    size: { value: { min: 1, max: 3 } },
+                    links: { enable: true, distance: 150, color: "#00F2FE", opacity: 0.2, width: 1 },
+                    move: { enable: true, speed: 0.8, direction: "none", random: false, straight: false, outModes: "out" }
+                },
+                detectRetina: true
+            });
+        }
+    });
+
+    // B. Interactive Cursor Tracking Bubble with 0-latency instant sync
     if (!parentDoc.getElementById('cursor-glow-bubble')) {
         const bubble = parentDoc.createElement('div');
         bubble.id = 'cursor-glow-bubble';
         bubble.style.cssText = `
-            position: fixed;
-            width: 380px;
-            height: 380px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(0, 242, 254, 0.25) 0%, rgba(255, 0, 127, 0.18) 45%, rgba(0, 0, 0, 0) 70%);
-            pointer-events: none;
-            z-index: 99999;
-            transform: translate(-50%, -50%);
-            transition: left 0.08s ease-out, top 0.08s ease-out, transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease;
-            filter: blur(22px);
-            opacity: 0.95;
-            left: 50%;
-            top: 50%;
+            position: fixed; top: 0; left: 0; width: 340px; height: 340px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 242, 254, 0.22) 0%, rgba(255, 0, 127, 0.15) 45%, rgba(0, 0, 0, 0) 70%);
+            pointer-events: none; z-index: 99999;
+            transition: transform 0.05s linear, background 0.3s ease;
+            filter: blur(20px); opacity: 0.95;
+            transform: translate3d(-500px, -500px, 0);
         `;
         parentDoc.body.appendChild(bubble);
         
         parentDoc.addEventListener('mousemove', (e) => {
-            bubble.style.left = e.clientX + 'px';
-            bubble.style.top = e.clientY + 'px';
-        });
+            bubble.style.transform = `translate3d(${e.clientX - 170}px, ${e.clientY - 170}px, 0)`;
+        }, { passive: true });
 
         parentDoc.addEventListener('mousedown', () => {
-            bubble.style.transform = 'translate(-50%, -50%) scale(1.35)';
-            bubble.style.background = 'radial-gradient(circle, rgba(255, 0, 127, 0.45) 0%, rgba(0, 255, 135, 0.35) 45%, rgba(0, 0, 0, 0) 70%)';
+            bubble.style.background = 'radial-gradient(circle, rgba(255, 0, 127, 0.40) 0%, rgba(0, 255, 135, 0.30) 45%, rgba(0, 0, 0, 0) 70%)';
         });
 
         parentDoc.addEventListener('mouseup', () => {
-            bubble.style.transform = 'translate(-50%, -50%) scale(1)';
-            bubble.style.background = 'radial-gradient(circle, rgba(0, 242, 254, 0.25) 0%, rgba(255, 0, 127, 0.18) 45%, rgba(0, 0, 0, 0) 70%)';
+            bubble.style.background = 'radial-gradient(circle, rgba(0, 242, 254, 0.22) 0%, rgba(255, 0, 127, 0.15) 45%, rgba(0, 0, 0, 0) 70%)';
         });
     }
 
-    // 2. Scroll-Triggered Progress Bar (Glowing Top Progress Bar)
+    // C. Scroll-Triggered Progress Bar (Glowing Top Progress Bar)
     if (!parentDoc.getElementById('scroll-progress-indicator')) {
         const progressBar = parentDoc.createElement('div');
         progressBar.id = 'scroll-progress-indicator';
         progressBar.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 4px;
-            width: 0%;
+            position: fixed; top: 0; left: 0; height: 4px; width: 0%;
             background: linear-gradient(90deg, #00F2FE, #00FF87, #7F00FF, #FF007F, #00F2FE);
-            background-size: 300% 100%;
-            z-index: 999999;
-            transition: width 0.1s ease-out;
+            background-size: 300% 100%; z-index: 999999; transition: width 0.1s ease-out;
             box-shadow: 0 0 15px #00F2FE, 0 0 25px #FF007F;
         `;
         parentDoc.body.appendChild(progressBar);
@@ -566,6 +649,136 @@ def inject_cursor_bubble():
             progressBar.style.width = progress + '%';
         }, { passive: true });
     }
+
+    // D. Mouse Spotlight Tracking optimized with RAF throttling for 60 FPS
+    let spotlightRaf = null;
+    parentDoc.addEventListener('mousemove', (e) => {
+        if (spotlightRaf) return;
+        spotlightRaf = requestAnimationFrame(() => {
+            spotlightRaf = null;
+            const cards = parentDoc.querySelectorAll('.glass-card, [data-testid="stVerticalBlockBorderWrapper"], .kpi-card');
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+    }, { passive: true });
+
+    // E. High-Performance RAF Number CountUp Engine starting from 0
+    function runCountUpAnimations() {
+        const countElements = parentDoc.querySelectorAll('.kpi-value[data-countup]:not([data-counted="true"])');
+        countElements.forEach(el => {
+            el.setAttribute('data-counted', 'true');
+            const targetStr = el.getAttribute('data-countup');
+            const isPercent = targetStr.includes('%');
+            const rawNum = parseFloat(targetStr.replace(/[^0-9.]/g, '')) || 0;
+            const prefix = el.getAttribute('data-prefix') || '';
+            const suffix = el.getAttribute('data-suffix') || (isPercent ? '%' : '');
+            
+            // Determine decimal precision based on targetStr
+            let decimals = 0;
+            const matchDec = targetStr.match(/\\.([0-9]+)/);
+            if (matchDec) {
+                decimals = matchDec[1].length;
+            }
+            
+            let startTime = null;
+            const duration = 1600; // 1.6 seconds smooth countup from 0
+            
+            function step(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const currentVal = rawNum * easeOut;
+                
+                let formatted;
+                if (decimals > 0) {
+                    formatted = currentVal.toFixed(decimals);
+                } else {
+                    formatted = Math.floor(currentVal).toLocaleString();
+                }
+                el.innerText = `${prefix}${formatted}${suffix}`;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    el.innerText = targetStr; // Ensure exact final string
+                }
+            }
+            requestAnimationFrame(step);
+        });
+    }
+
+    // Observe Streamlit DOM mutations so tab switches trigger count up from 0
+    const observer = new MutationObserver(() => {
+        runCountUpAnimations();
+    });
+    if (parentDoc.body) {
+        observer.observe(parentDoc.body, { childList: true, subtree: true });
+    }
+
+    setInterval(runCountUpAnimations, 600);
+    setTimeout(runCountUpAnimations, 150);
+
+    // Instant zero-loop autoscale on first load and Tab Click for all Plotly charts
+    function autoscaleAllChartsNow() {
+        // 1. Resize all Plotly charts in main document
+        parentDoc.querySelectorAll('.js-plotly-plot').forEach(function(plot) {
+            if (parentWin.Plotly && typeof parentWin.Plotly.Plots.resize === 'function') {
+                parentWin.Plotly.Plots.resize(plot);
+            }
+        });
+        // 2. Resize all Streamlit iframed charts
+        parentDoc.querySelectorAll('iframe').forEach(function(ifr) {
+            try {
+                const win = ifr.contentWindow;
+                const doc = ifr.contentDocument || win.document;
+                if (win) {
+                    win.dispatchEvent(new Event('resize'));
+                }
+                if (win && doc) {
+                    doc.querySelectorAll('.js-plotly-plot').forEach(function(plot) {
+                        if (win.Plotly) {
+                            if (typeof win.Plotly.Plots.resize === 'function') {
+                                win.Plotly.Plots.resize(plot);
+                            }
+                            if (typeof win.Plotly.relayout === 'function') {
+                                win.Plotly.relayout(plot, {autosize: true});
+                            }
+                        }
+                    });
+                }
+            } catch(err) {}
+        });
+        try { parentWin.dispatchEvent(new Event('resize')); } catch(e) {}
+    }
+
+    function triggerAllAnimationsNow() {
+        parentDoc.querySelectorAll('.kpi-value[data-countup]').forEach(el => {
+            el.removeAttribute('data-counted');
+        });
+        runCountUpAnimations();
+    }
+
+    parentDoc.addEventListener('click', function(e) {
+        const tabHeader = e.target.closest('[role="tab"], button[data-baseweb="tab"]');
+        if (tabHeader) {
+            setTimeout(autoscaleAllChartsNow, 30);
+            setTimeout(autoscaleAllChartsNow, 120);
+            setTimeout(autoscaleAllChartsNow, 300);
+            setTimeout(autoscaleAllChartsNow, 600);
+            setTimeout(triggerAllAnimationsNow, 50);
+        }
+    }, { passive: true });
+
+    // Auto-trigger on initial page load across multiple intervals so charts load perfectly at 100% width
+    setTimeout(autoscaleAllChartsNow, 100);
+    setTimeout(autoscaleAllChartsNow, 350);
+    setTimeout(autoscaleAllChartsNow, 700);
+    setTimeout(autoscaleAllChartsNow, 1400);
     </script>
     """
     components.html(js_code, height=0, width=0)
@@ -594,88 +807,118 @@ def render_custom_github_badge():
 
 def render_header(title, subtitle=""):
     """
-    Renders an electric modern header for the Streamlit app.
+    Renders an electric modern header with Hero Intro Animation for the Streamlit app.
     """
     render_custom_github_badge()
-    st.markdown(f'<div class="main-title">{title}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="main-title" data-aos="fade-down">{title}</div>', unsafe_allow_html=True)
     if subtitle:
-        st.markdown(f'<div class="sub-title">{subtitle}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="sub-title" data-aos="fade-up" data-aos-delay="150">{subtitle}</div>', unsafe_allow_html=True)
 
-def render_kpi_card(title, value, subtitle="", icon="📊"):
+def render_kpi_card(title, value, subtitle="", icon="📊", prefix="", suffix="", **kwargs):
     """
-    Renders an HTML/CSS styled KPI card with vibrant neon hover glow animation.
+    Renders an HTML/CSS styled KPI card with vibrant neon hover glow animation,
+    Mouse Spotlight support, and CountUp data attributes for smooth number counting.
     """
+    # Clean string value for CountUp target
+    val_str = str(value)
+    if "%" in val_str:
+        initial_str = "0.0%" if "." in val_str else "0%"
+    elif "." in val_str:
+        dec_count = len(val_str.split(".")[1])
+        initial_str = "0." + "0" * dec_count
+    else:
+        initial_str = "0"
+
     html = f"""
-    <div class="kpi-card">
+    <div class="kpi-card" data-aos="zoom-in-up">
         <div class="kpi-icon">{icon}</div>
         <div class="kpi-title">{title}</div>
-        <div class="kpi-value">{value}</div>
+        <div class="kpi-value" data-countup="{val_str}" data-prefix="{prefix}" data-suffix="{suffix}">{initial_str}</div>
         <div class="kpi-subtitle">{subtitle}</div>
     </div>
     """
     st.markdown(html, unsafe_allow_html=True)
 
+def render_loading_skeleton(count=2):
+    """
+    Renders shimmering CSS loading skeletons for smooth state transitions.
+    """
+    skeleton_html = ""
+    for _ in range(count):
+        skeleton_html += '<div class="loading-skeleton-box"></div>'
+    st.markdown(skeleton_html, unsafe_allow_html=True)
+
 def render_footer():
     """
-    Renders the custom animated LinkedIn footer requested by the user.
+    Renders the custom animated LinkedIn footer requested by the user globally.
     """
     footer_html = """
-    <div style="margin-top: 4.5rem; padding-top: 2rem; border-top: 1px solid rgba(255, 255, 255, 0.15); text-align: center; font-family: 'Inter', sans-serif; animation: fadeInSlideUp 0.8s ease;">
-        <p style="color: #f1f5f9; font-size: 1.15rem; font-weight: 600; margin-bottom: 0.4rem; letter-spacing: 0.02em;">
-            Made with ❤️ by <a href="https://www.linkedin.com/in/sk-mahammad-sahil" target="_blank" style="color: #00F2FE; text-decoration: none; font-weight: 800; transition: all 0.3s ease; text-shadow: 0 0 15px rgba(0, 242, 254, 0.4);">Sahil</a>
+    <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid rgba(128, 128, 128, 0.25); text-align: center; font-family: 'Inter', sans-serif; opacity: 1;">
+        <p style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.4rem; letter-spacing: 0.02em;">
+            Made with ❤️ by <a href="https://www.linkedin.com/in/sk-mahammad-sahil" target="_blank" style="color: #00F2FE; text-decoration: none; font-weight: 800; transition: all 0.3s ease; text-shadow: 0 0 15px rgba(0, 242, 254, 0.5);">Sahil</a>
         </p>
-        <p style="color: #94a3b8; font-size: 0.95rem; margin-top: 0; font-weight: 500;">
+        <p style="font-size: 0.95rem; margin-top: 0; font-weight: 500; opacity: 0.75;">
             © 2026 Sahil. All rights reserved.
         </p>
     </div>
     """
     st.markdown(footer_html, unsafe_allow_html=True)
 
-def get_plotly_layout(title="", height=420, show_legend=True, barmode=None):
+def get_plotly_layout(title="", height=420, show_legend=True, barmode=None, theme="dark"):
     """
-    Returns a unified, ultra-vibrant neon theme layout for Plotly charts.
+    Returns a unified layout for Plotly charts with animated transitions and dynamic theme adaptability.
     """
+    is_light = (theme == "light")
+    font_color = "#0f172a" if is_light else "#cbd5e1"
+    title_color = "#0f172a" if is_light else "#ffffff"
+    grid_color = "rgba(0, 0, 0, 0.08)" if is_light else "rgba(255, 255, 255, 0.08)"
+    zeroline_color = "rgba(0, 242, 254, 0.35)"
+    hover_bg = "#ffffff" if is_light else "#0f172a"
+
     layout = dict(
         title=dict(
             text=f"<b>{title}</b>" if title else "",
-            font=dict(size=17, color='#ffffff', family="Outfit, sans-serif"),
+            font=dict(size=17, color=title_color, family="Outfit, sans-serif"),
             x=0.02,
             y=0.95
         ),
         height=height,
+        autosize=True,
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#cbd5e1', family="Inter, sans-serif"),
-        margin=dict(l=60, r=30, t=55, b=95),
+        font=dict(color=font_color, family="Inter, sans-serif"),
+        margin=dict(l=75, r=35, t=65, b=75),
         showlegend=show_legend,
         legend=dict(
             orientation="h",
-            yanchor="top",
-            y=-0.18,
-            xanchor="center",
-            x=0.5,
-            font=dict(size=12, color='#f8fafc')
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1.0,
+            font=dict(size=12, color=title_color)
         ),
         xaxis=dict(
             showgrid=True,
-            gridcolor='rgba(255, 255, 255, 0.08)',
-            zerolinecolor='rgba(0, 242, 254, 0.25)',
-            tickfont=dict(color='#cbd5e1')
+            gridcolor=grid_color,
+            zerolinecolor=zeroline_color,
+            tickfont=dict(color=font_color, size=13),
+            automargin=True
         ),
         yaxis=dict(
             showgrid=True,
-            gridcolor='rgba(255, 255, 255, 0.08)',
-            zerolinecolor='rgba(0, 242, 254, 0.25)',
-            tickfont=dict(color='#cbd5e1')
+            gridcolor=grid_color,
+            zerolinecolor=zeroline_color,
+            tickfont=dict(color=font_color),
+            automargin=True
         ),
         hoverlabel=dict(
-            bgcolor='#0f172a',
+            bgcolor=hover_bg,
             bordercolor='#00f2fe',
             font_size=13,
             font_family="Inter, sans-serif"
-        )
+        ),
+        hovermode="closest"
     )
     if barmode:
         layout['barmode'] = barmode
     return layout
-
