@@ -744,30 +744,59 @@ def inject_premium_frontend_engine():
         requestAnimationFrame(step);
     }
 
+    // Strict visibility check ensuring element and its parent tabpanel are truly visible on screen
+    function isElementTrulyVisible(el) {
+        if (!el || el.offsetParent === null) return false;
+        const rect = el.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return false;
+        const tabPanel = el.closest('[role="tabpanel"]');
+        if (tabPanel) {
+            if (tabPanel.getAttribute('aria-hidden') === 'true' || tabPanel.hidden) return false;
+            const pRect = tabPanel.getBoundingClientRect();
+            if (pRect.width === 0 || pRect.height === 0) return false;
+        }
+        return true;
+    }
+
     // Animate only currently visible KPI cards in the active tab
     function animateAllVisibleKpis() {
         try {
             parentDoc.querySelectorAll('.kpi-value[data-countup]').forEach(el => {
-                // Check if element is currently visible on screen (active tab)
-                if (el.offsetParent !== null && !el.getAttribute('data-active-anim')) {
+                if (isElementTrulyVisible(el) && !el.getAttribute('data-active-anim')) {
                     animateCountUpElement(el);
                 }
             });
         } catch(e) {}
     }
 
-    // Clear active animation state on all KPI cards when switching tabs
+    // Clear active animation state on all KPI cards so visible cards re-animate from 0
     function resetAllKpiAnimations() {
         try {
             parentDoc.querySelectorAll('.kpi-value[data-countup]').forEach(el => {
                 el.removeAttribute('data-active-anim');
                 el.removeAttribute('data-animating');
             });
-            animateAllVisibleKpis();
+            setTimeout(animateAllVisibleKpis, 60);
+            setTimeout(animateAllVisibleKpis, 200);
         } catch(e) {}
     }
 
-    // Observe Streamlit DOM mutations so filter updates trigger count up
+    // Continuously monitor active tab changes to trigger re-animation on every tab switch
+    let lastActiveTabKey = null;
+    function checkActiveTabChange() {
+        try {
+            const activeTab = parentDoc.querySelector('[role="tab"][aria-selected="true"]');
+            const currentKey = activeTab ? (activeTab.innerText || activeTab.textContent).trim() : '';
+            if (currentKey && currentKey !== lastActiveTabKey) {
+                lastActiveTabKey = currentKey;
+                resetAllKpiAnimations();
+                setTimeout(autoscaleAllChartsNow, 30);
+                setTimeout(autoscaleAllChartsNow, 200);
+            }
+        } catch(e) {}
+    }
+
+    // Observe DOM mutations for filter changes
     const observer = new MutationObserver(() => {
         animateAllVisibleKpis();
     });
@@ -775,35 +804,27 @@ def inject_premium_frontend_engine():
         observer.observe(parentDoc.body, { childList: true, subtree: true });
     }
 
-    // Regularly scan for any newly visible KPI cards
+    // Poll for tab switches & newly visible cards
+    setInterval(checkActiveTabChange, 150);
     setInterval(animateAllVisibleKpis, 250);
     setTimeout(animateAllVisibleKpis, 100);
 
     // Instant zero-loop autoscale on first load and Tab Click for all Plotly charts
     function autoscaleAllChartsNow() {
-        // 1. Resize all Plotly charts in main document
         parentDoc.querySelectorAll('.js-plotly-plot').forEach(function(plot) {
             if (parentWin.Plotly && typeof parentWin.Plotly.Plots.resize === 'function') {
                 parentWin.Plotly.Plots.resize(plot);
             }
         });
-        // 2. Resize all Streamlit iframed charts
         parentDoc.querySelectorAll('iframe').forEach(function(ifr) {
             try {
                 const win = ifr.contentWindow;
                 const doc = ifr.contentDocument || win.document;
-                if (win) {
-                    win.dispatchEvent(new Event('resize'));
-                }
+                if (win) win.dispatchEvent(new Event('resize'));
                 if (win && doc) {
                     doc.querySelectorAll('.js-plotly-plot').forEach(function(plot) {
-                        if (win.Plotly) {
-                            if (typeof win.Plotly.Plots.resize === 'function') {
-                                win.Plotly.Plots.resize(plot);
-                            }
-                            if (typeof win.Plotly.relayout === 'function') {
-                                win.Plotly.relayout(plot, {autosize: true});
-                            }
+                        if (win.Plotly && typeof win.Plotly.Plots.resize === 'function') {
+                            win.Plotly.Plots.resize(plot);
                         }
                     });
                 }
@@ -812,26 +833,21 @@ def inject_premium_frontend_engine():
         try { parentWin.dispatchEvent(new Event('resize')); } catch(e) {}
     }
 
+    // Ensure direct clicks on any tab header or tab button immediately replay animations
     parentDoc.addEventListener('click', function(e) {
-        const tabHeader = e.target.closest('[role="tab"], [data-testid="stTab"], button[data-baseweb="tab"], .stTabs button');
+        const tabHeader = e.target.closest('[role="tab"], [data-testid="stTab"], button[data-baseweb="tab"], .stTabs button, .stTabs [role="tab"]');
         if (tabHeader) {
+            resetAllKpiAnimations();
             setTimeout(autoscaleAllChartsNow, 30);
-            setTimeout(autoscaleAllChartsNow, 120);
-            setTimeout(autoscaleAllChartsNow, 300);
-            setTimeout(autoscaleAllChartsNow, 600);
-            
-            setTimeout(resetAllKpiAnimations, 20);
-            setTimeout(resetAllKpiAnimations, 150);
-            setTimeout(resetAllKpiAnimations, 350);
-            setTimeout(resetAllKpiAnimations, 650);
+            setTimeout(autoscaleAllChartsNow, 200);
+            setTimeout(autoscaleAllChartsNow, 500);
         }
     }, { passive: true });
 
-    // Auto-trigger on initial page load across multiple intervals so charts load perfectly at 100% width
+    // Auto-trigger on initial page load
     setTimeout(autoscaleAllChartsNow, 100);
     setTimeout(autoscaleAllChartsNow, 350);
     setTimeout(autoscaleAllChartsNow, 700);
-    setTimeout(autoscaleAllChartsNow, 1400);
     </script>
     """
     components.html(js_code, height=0, width=0)
